@@ -1,8 +1,9 @@
 import cv2
-import numpy as np
 import pickle
 
+
 from constantes import MARKER_SIZE_M, ARUCO_PARAM
+
 
 # Подгружаем данные для определения дистанции
 with open('camera_params//dist.pkl', 'rb') as f:
@@ -13,7 +14,8 @@ with open('camera_params//cameraMatrix.pkl', 'rb') as g:
 
 
 def pose_esitmation(frame, arucoDict):
-    """Находит маркеры на кадре и возвращает координаты двух углов 1 и 3, дистанция до маркера"""
+    """Находит маркеры на кадре и возвращает координаты маркера относительно камеры,
+    дистанцию до маркера, отклонение по X и по Y"""
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -27,29 +29,32 @@ def pose_esitmation(frame, arucoDict):
             corners, MARKER_SIZE_M, cam_mat, dist_coef
         )
 
-         # Определяем дистанцию до маркера
-        distance_to_marker = np.linalg.norm(tvec)
+        # поворот по X
+        turn_X = rvec[0][0][0]
+        # поворот по Y
+        turn_Y = rvec[0][0][1]
 
-
-        # координаты маркера по X
-        c1X = corners[0][0][0][0]
-        c3X = corners[0][0][2][0]
-
+        # координата маркера по X
+        X_coord = tvec[0][0][0]
         # координаты маркера по Y
-        c1Y = corners[0][0][0][1]
-        c3Y = corners[0][0][2][1]
+        Y_coord = tvec[0][0][0]
+        # дистанция до маркера (Z)
+        distance_to_marker = tvec[0][0][2]
+        return {X_coord, Y_coord, distance_to_marker, turn_X, turn_Y}
+    else:
+        return None
 
-        # дистанция до маркера
-        d = distance_to_marker
 
-        return {c1X, c1Y, c3X, c3Y, d}
-
-
-def correction(c1X, c1Y, c3X, c3Y):
-    """Отправляет симгналы в двигатели, для поворота"""
+def getting_into_position(X_coord, Y_coord):
+    """Направляет коптер на центр маркера"""
     pass
 
 
-def decline(d):
+def correction(turn_X, turn_Y):
+    """Поварачивает коптер по маркеру"""
+    pass
+
+
+def decline(status, distance):
     """Снижает высоту до маркера"""
     pass
